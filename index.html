@@ -93,29 +93,19 @@
         }
 
         .control-card .section-title {
-    color: #ffffff !important;
-}
-.control-card .section-title i {
-    color: #fef08a !important; /* ปรับไอคอนถ้วยรางวัล/ผู้ใช้ ให้เป็นสีทองสว่าง */
-}
+            color: #ffffff !important;
+        }
+        .control-card .section-title i {
+            color: #fef08a !important; /* ปรับไอคอนถ้วยรางวัล/ผู้ใช้ ให้เป็นสีทองสว่าง */
+        }
 
-/* ปรับแต่งกรอบสถานะการอัปเดตให้อ่านง่ายขึ้นบนพื้นหลังสีเข้ม */
-.control-card .status-indicator {
-    background: rgba(255, 255, 255, 0.15); /* ปรับพื้นหลังให้โปร่งแสงขาว */
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(4px); /* เพิ่มเอฟเฟกต์กระจกฝ้าสไตล์โมเดิร์น */
-}
-
-        /* .section-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        } */
+        /* ปรับแต่งกรอบสถานะการอัปเดตให้อ่านง่ายขึ้นบนพื้นหลังสีเข้ม */
+        .control-card .status-indicator {
+            background: rgba(255, 255, 255, 0.15); /* ปรับพื้นหลังให้โปร่งแสงขาว */
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(4px); /* เพิ่มเอฟเฟกต์กระจกฝ้าสไตล์โมเดิร์น */
+        }
 
         .custom-select {
             font-family: 'Prompt', sans-serif;
@@ -188,6 +178,11 @@
             overflow-y: hidden; 
             position: relative;
         }
+        
+        /* [ADDED] ดันเฉพาะตาราง Scoreboard ให้ขยับลงมาด้านล่างเพิ่มความโปร่ง */
+        #scoreboard-scroll-box {
+            margin-top: 25px;
+        }
 
         .table-custom {
             margin-bottom: 0;
@@ -218,7 +213,7 @@
 
         .table-custom tr.field-label-row th {
             background-color: var(--thead-bg-gray) !important;
-            color: #0f172a !important;
+            color: #ffffff !important;
             font-weight: 700 !important;
             font-size: 20px !important; 
             padding: 18px 15px;
@@ -330,10 +325,6 @@
 <body>
 
     <div class="pc-container">
-        <!-- <div class="banner-container">
-            <img src="https://drive.google.com/thumbnail?id=1Wpkqlj322JSNv2zYo36qjlJRcfWHkbCp&sz=w1920" alt="CARC2026 Banner" class="banner-img">
-        </div> -->
-
         <div class="main-content">
             
             <div class="control-card d-flex justify-content-between align-items-center">
@@ -367,13 +358,12 @@
                 <p class="mt-3 text-muted fw-medium fs-5">Please wait...</p>
             </div>
 
-            <div id="dynamic-view-wrapper">
-                </div>
+            <div id="dynamic-view-wrapper"></div>
 
         </div>
 
         <div class="web-architecture-version">
-            Web Architecture: v1.2.0 (Centered Banner & GitHub Ready)
+            Web Architecture: v1.2.1 (Hidden Team ID & Adjusted Margin)
         </div>
 
         <footer>
@@ -414,56 +404,51 @@
         }
 
         function fetchDataEngine(sheetName) {
-    showLoader(true);
-    
-    // ⚠️ นำลิงก์ Web App URL (ที่ลงท้ายด้วย /exec) ที่ได้จาก Google Apps Script มาวางแทนที่เครื่องหมายคำพูดด้านล่างนี้ครับ
-    const APPS_SCRIPT_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyswpNQBzj6_Bt2B1DTngpf2QxvfvG0ywk63yYHb0clfDImqdFZ7-KM2qE-JAfgmk9L/exec";
-    
-    // ระบบตรวจจับอัจฉริยะ: หากรันอยู่บนระบบ Google Web App ตรงๆ จะใช้ google.script.run ตามเดิม
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run
-            .withSuccessHandler(function(response) {
-                buildResponsiveTable(sheetName, response);
-                showLoader(false);
-            })
-            .withFailureHandler(function(err) {
-                console.error("Backend integration runtime failure:", err);
-                showLoader(false);
-            })
-            .getSheetData(sheetName);
-    } 
-    // 🚀 หากรันบน GitHub Pages ระบบจะเปลี่ยนมาใช้ Fetch API ยิงข้อมูลสดๆ ข้ามระบบจาก Google Sheets ทันที
-    else {
-        fetch(`${APPS_SCRIPT_WEBAPP_URL}?sheet=${encodeURIComponent(sheetName)}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
-                return response.json();
-            })
-            .then(response => {
-                // ตรวจสอบโครงสร้างข้อมูล หาก Backend ส่ง Error กลับมา ให้สลับไปใช้ Mock Data
-                if (response && response.error) {
-                    console.error("Backend Apps Script Error:", response.error);
-                    fallbackToMockData(sheetName);
-                    return;
-                }
-                buildResponsiveTable(sheetName, response);
-                showLoader(false);
-            })
-            .catch(err => {
-                console.error("GitHub Cross-Origin Fetch Error (สลับไปใช้ Mock Data อัตโนมัติ):", err);
-                fallbackToMockData(sheetName);
-            });
-    }
-}
+            showLoader(true);
+            
+            const APPS_SCRIPT_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyswpNQBzj6_Bt2B1DTngpf2QxvfvG0ywk63yYHb0clfDImqdFZ7-KM2qE-JAfgmk9L/exec";
+            
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                google.script.run
+                    .withSuccessHandler(function(response) {
+                        buildResponsiveTable(sheetName, response);
+                        showLoader(false);
+                    })
+                    .withFailureHandler(function(err) {
+                        console.error("Backend integration runtime failure:", err);
+                        showLoader(false);
+                    })
+                    .getSheetData(sheetName);
+            } 
+            else {
+                fetch(`${APPS_SCRIPT_WEBAPP_URL}?sheet=${encodeURIComponent(sheetName)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("Network response was not ok");
+                        }
+                        return response.json();
+                    })
+                    .then(response => {
+                        if (response && response.error) {
+                            console.error("Backend Apps Script Error:", response.error);
+                            fallbackToMockData(sheetName);
+                            return;
+                        }
+                        buildResponsiveTable(sheetName, response);
+                        showLoader(false);
+                    })
+                    .catch(err => {
+                        console.error("GitHub Cross-Origin Fetch Error (สลับไปใช้ Mock Data อัตโนมัติ):", err);
+                        fallbackToMockData(sheetName);
+                    });
+            }
+        }
 
-// ฟังก์ชันเสริมสำหรับดึงข้อมูลสำรอง ในกรณีที่เซิร์ฟเวอร์หลักหรืออินเทอร์เน็ตหน้างานมีปัญหา บอร์ดคะแนนจะไม่ค้างจอดำ
-function fallbackToMockData(sheetName) {
-    const mockPayload = fetchLocalMockDataset(sheetName);
-    buildResponsiveTable(sheetName, mockPayload);
-    showLoader(false);
-}
+        function fallbackToMockData(sheetName) {
+            const mockPayload = fetchLocalMockDataset(sheetName);
+            buildResponsiveTable(sheetName, mockPayload);
+            showLoader(false);
+        }
 
         function sliceColumns(row, startCol, count) {
             if (!row) return [];
@@ -483,6 +468,8 @@ function fallbackToMockData(sheetName) {
             if (sheetName === 'Scoreboard') {
                 let headers = [...data[0]];
                 const medalIndex = headers.findIndex(h => h.toLowerCase().includes('medal'));
+                // [UPDATED] หา Index ของคอลัมน์ Team ID
+                const teamIdIndex = headers.findIndex(h => h.toLowerCase().includes('team id'));
 
                 let tableHtml = `
                     <div class="table-responsive-custom autoscore-container" id="scoreboard-scroll-box">
@@ -491,13 +478,17 @@ function fallbackToMockData(sheetName) {
                                 <tr class="field-label-row">`;
                 
                 headers.forEach((headerText, i) => {
-                    let colClass = '';
+                    // [UPDATED] ถ้าเป็นคอลัมน์ Team ID ให้เติม Bootstrap Class 'd-none' เพื่อซ่อนคอลัมน์
+                    let isTeamId = (i === teamIdIndex);
+                    let colClass = isTeamId ? 'class="d-none"' : '';
                     let textClean = headerText.trim().toLowerCase();
 
-                    if (i === 0 || textClean.includes('id') || textClean.includes('round') || textClean.includes('score') || textClean.includes('medal')) {
-                        colClass = 'class="col-w-10"';
-                    } else {
-                        colClass = 'class="col-w-20"';
+                    if (!isTeamId) {
+                        if (i === 0 || textClean.includes('round') || textClean.includes('score') || textClean.includes('medal')) {
+                            colClass = 'class="col-w-10"';
+                        } else {
+                            colClass = 'class="col-w-20"';
+                        }
                     }
                     
                     let displayText = headerText;
@@ -514,10 +505,13 @@ function fallbackToMockData(sheetName) {
                 for (let r = 1; r < data.length; r++) {
                     tableHtml += `<tr>`;
                     data[r].forEach((cell, c) => {
-                        if (c === 0 && !isNaN(cell) && cell !== '') {
+                        // [UPDATED] ตรวจสอบเพื่อซ่อนข้อมูลในแถวของคอลัมน์ Team ID ให้สอดคล้องกับหัวตาราง
+                        if (c === teamIdIndex) {
+                            tableHtml += `<td class="d-none"></td>`;
+                        } else if (c === 0 && !isNaN(cell) && cell !== '') {
                             const rank = parseInt(cell);
                             tableHtml += `<td class="text-center">${rank <= 3 ? `<span class="rank-badge rank-${rank}">${rank}</span>` : rank}</td>`;
-                        } else if (c === medalIndex || c === 1 || headers[c].toLowerCase().includes('round') || headers[c].toLowerCase().includes('score')) {
+                        } else if (c === medalIndex || headers[c].toLowerCase().includes('round') || headers[c].toLowerCase().includes('score')) {
                             tableHtml += `<td class="text-center">${cell !== null ? cell : ''}</td>`;
                         } else {
                             tableHtml += `<td>${cell !== null ? cell : ''}</td>`;
@@ -623,7 +617,6 @@ function fallbackToMockData(sheetName) {
             }
         }
 
-        // กลไกควบคุมแอนิเมชันลูปหน่วงเวลาฝั่งละ 10 วินาทีในโหมดความช้าโมเดิร์น
         function initUnderTheadSlowSlideEngine() {
             const scrollBox = document.getElementById('scoreboard-scroll-box');
             const tbodyTarget = document.getElementById('scoreboard-tbody-target');
@@ -646,29 +639,24 @@ function fallbackToMockData(sheetName) {
             autoScrollInterval = setInterval(() => {
                 const maxScrollDynamic = scrollBox.scrollHeight - scrollBox.clientHeight;
 
-                // 1. โหมด FIRST_LOAD_WAIT: ค้างแสดงพื้นที่ว่างใต้ Thead นิ่ง ๆ 10 วินาทีแรก
                 if (currentMode === "FIRST_LOAD_WAIT") {
                     scrollBox.scrollTop = 0;
                     delayCounter++;
-                    if (delayCounter >= 285) { // 285 รอบ * 35ms ≈ 10 วินาที
-                        tbodyTarget.className = "tbody-initial-slide-down"; // สั่งสไลด์ลงมาอย่างเช้านุ่มนวลพรีเมียม 20s
+                    if (delayCounter >= 285) { 
+                        tbodyTarget.className = "tbody-initial-slide-down"; 
                         currentMode = "FIRST_LOAD_SLIDING"; 
                         delayCounter = 0;
                     }
                 }
-                
-                // 2. โหมด FIRST_LOAD_SLIDING: รอรับขบวนแถวข้อมูลให้ CSS เลื่อนไหลลงมาจนชนขอบล่างสุดเสร็จสมบูรณ์
                 else if (currentMode === "FIRST_LOAD_SLIDING") {
                     delayCounter++;
-                    if (delayCounter >= 570) { // 570 รอบ * 35ms = 20 วินาทีตรงตามกฎ CSS
+                    if (delayCounter >= 570) { 
                         tbodyTarget.className = ""; 
                         scrollBox.scrollTop = 0; 
                         currentMode = "TOP_HOLD"; 
                         delayCounter = 0;
                     }
                 }
-
-                // 3. โหมด LOOP_START_HOLD: สแตนด์บายแสดงผลทีมอันดับสุดท้าย (อันดับ 12) ค้างนิ่งไว้เลย 10 วินาทีในลูปรอบถัดไป
                 else if (currentMode === "LOOP_START_HOLD") {
                     if (maxScrollDynamic > 0) {
                         scrollBox.scrollTop = maxScrollDynamic; 
@@ -679,8 +667,6 @@ function fallbackToMockData(sheetName) {
                         delayCounter = 0;
                     }
                 }
-                
-                // 4. โหมด SCROLLING_UP: ใช้แอนิเมชันสคริปต์ค่อย ๆ สกรอลล์ไหลบอร์ดขึ้นบนอย่างละมุนสายตาเพื่อกวาดอ่านคะแนน
                 else if (currentMode === "SCROLLING_UP") {
                     if (scrollBox.scrollTop > 0) {
                         scrollBox.scrollTop -= scrollSpeed; 
@@ -689,8 +675,6 @@ function fallbackToMockData(sheetName) {
                         delayCounter = 0;
                     }
                 }
-                
-                // 5. โหมด TOP_HOLD: ล็อกหน้าจอทำเนียบแชมป์อันดับ 1-3 ทิ้งไว้ 10 วินาทีเต็มให้ผู้ชมดูผลสรุปคะแนน
                 else if (currentMode === "TOP_HOLD") {
                     delayCounter++;
                     if (delayCounter >= 285) { 
@@ -703,7 +687,7 @@ function fallbackToMockData(sheetName) {
                         delayCounter = 0;
                     }
                 }
-            }, 35); // ลูปหน่วงเวลาประสิทธิภาพสูง 35ms
+            }, 35); 
         }
 
         function showLoader(isActive) {
